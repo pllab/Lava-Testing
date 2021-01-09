@@ -1,0 +1,7 @@
+(w4$now <-> (i0$now));
+(w5$now <-> (i1$now));
+(w3$now <-> (XOR(w4$now,w5$now)));
+(w6$now <-> (AND(w4$now,w5$now)));
+(w2$now <-> (AND(w3$now,w6$now)));
+(w1$now <-> (~w2$now));
+quest$now_n1 <-> w1$now;
