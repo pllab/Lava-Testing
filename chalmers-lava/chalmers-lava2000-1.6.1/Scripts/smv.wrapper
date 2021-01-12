@@ -40,7 +40,7 @@ Time="/tmp/lava-proof-time-$$"
 
 smv_()
 {
-  time smv $File $Args 2> $Time
+  time nusmv $File $Args 2> $Time
 }
 
 smv_ > $Output

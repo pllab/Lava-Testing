@@ -1,2 +1,4 @@
 dist-newstyle/
 *.vhd-*
+.DS_Store
+Verify/*.out

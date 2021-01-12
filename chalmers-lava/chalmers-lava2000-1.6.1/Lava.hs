@@ -12,6 +12,7 @@ module Lava
   , module Lava.Fixit
   , module Lava.Smv
   , module Lava.Satzoo
+  , module Lava.Minisat
   , module Lava.Property
   , module Lava.Retime
   , module Lava.Vhdl
@@ -31,6 +32,7 @@ import Lava.Vis
 import Lava.Fixit
 import Lava.Smv
 import Lava.Satzoo
+import Lava.Minisat
 import Lava.Property
 import Lava.Retime
 import Lava.Vhdl
