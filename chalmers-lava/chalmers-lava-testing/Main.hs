@@ -124,9 +124,18 @@ test4 = do
   {- Verification -}
   Lava.smv prop_SameAdderSeq >>= print
 
+counter n () = number'
+  where
+    number'            = Lava.delay (Lava.zeroList n) number
+    (number, carryOut) = adder (Lava.high, (Lava.zeroList n, number'))
+
+test5 = do
+  Lava.simulateSeq (counter 3) (replicate 10 ()) |> print
+
 main :: IO ()
 main = do
- -- test1
- -- test2
- -- test3
- test4
+  test1
+  -- test2
+  -- test3
+  -- test4
+  test5 
