@@ -68,8 +68,8 @@ writeDefinitions file props =
 
          define v s =
            case s of
-             Bool True     -> op0 "1"
-             Bool False    -> op0 "0"
+             Bool True     -> op0 "TRUE"
+             Bool False    -> op0 "FALSE"
              Inv x         -> op1 "!" x
 
              And []        -> define v (Bool True)
