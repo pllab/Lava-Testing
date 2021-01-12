@@ -36,9 +36,10 @@ add n (a, b) = out
 
 main :: IO ()
 main = do
-  --test1
+  test1
   test2
 
+-- Combinational examples
 test1 = do
   Lava.simulateSeq halfAdd Lava.domain |> mapM_ print
   Lava.writeVhdl "halfAdd" halfAdd
@@ -46,3 +47,6 @@ test1 = do
 
 test2 = do
   Lava.simulate (add 16) (4, 5) |> print
+  Lava.writeVhdlInputOutput "4BitAdder" adder
+    (Lava.var "cin", (Lava.varList 4 "a", Lava.varList 4 "b"))
+    (Lava.varList 4 "sum", Lava.var "cout")
