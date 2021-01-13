@@ -62,18 +62,12 @@ testHalfAdder = map (Lava.simulate halfAdd) input
     where input = [ (Lava.low,Lava.low), (Lava.low,Lava.high)
                   , (Lava.high,Lava.low), (Lava.high,Lava.high)]
 
-test1 = do
+test_sim1 = do
   {- Simulation -}
   Lava.simulate halfAdd (Lava.high, Lava.high) |> print
   testHalfAdder  |> print
   Lava.simulateSeq halfAdd Lava.domain |> mapM_ print
-  {- Synthesis -}
-  Lava.writeVhdl "halfAdd" halfAdd
-  -- Use custom library with more VHDL code generation options
-  VHD.writeVhdlNoClk "halfAddwithoutClk" halfAdd
-  {- Verification (don't use Lava.satzoo!) -}
-  Lava.minisat prop_HalfAddOutputNeverBothTrue >>= print
-  
+
 -- 2) Full adder
 
 fullAdd (cin, (a, b)) = (sum, cout)
@@ -97,26 +91,17 @@ add n (a, b) = out
     (ss, c) = adder (Lava.low, (as, bs))
     out = LA.bin2int (ss ++ [c])
 
-test2 = do
+test_sim2 = do
   {- Simulation -}
   Lava.simulate fullAdd  (Lava.high, (Lava.high, Lava.high)) |> print
   Lava.simulate (add 16) (4, 5) |> print
-  {- Synthesis -}
-  Lava.writeVhdlInputOutput "4BitAdder" adder
-    (Lava.var "cin", (Lava.varList 4 "a", Lava.varList 4 "b"))
-    (Lava.varList 4 "sum", Lava.var "cout")
-  {- Verification -}
-  Lava.minisat (prop_AdderCommutative_ForSize 32) >>= print
-  Lava.minisat (prop_AdderCommutative_ForSize 2) >>= print
-  Lava.minisat prop_FullAddCommutative >>= print
-  Lava.smv (prop_Equivalent LA.fullAdd fullAdd) >>= print
 
 -- 3) N-bit Adder (via "row" connection pattern)
 
 adder' :: (Bit, [(Bit, Bit)]) -> ([Bit], Bit)
 adder' = LP.row fullAdd
 
-test3 = do
+test_sim3 = do
   Lava.writeVhdlInputOutput "4BitAdder_row" adder'
     (Lava.var "cin", map (\i -> (Lava.var $ "a_" ++ show i, Lava.var $ "b_" ++ show i)) [0..4])
     (Lava.varList 4 "sum", Lava.var "cout")
@@ -139,26 +124,24 @@ prop_SameAdderSeq inp = ok
     out2 = adderSeq' inp
     ok   = out1 Lava.<==> out2
 
-test4 = do
+test_sim4 = do
   {- Simulation -}
   let inputs = [(Lava.high, Lava.low), (Lava.high, Lava.high), (Lava.low, Lava.high)]
   Lava.simulateSeq adderSeq inputs |> print
-  {- Verification -}
-  Lava.smv prop_SameAdderSeq >>= print
 
 counter n () = number'
   where
     number'            = Lava.delay (Lava.zeroList n) number
     (number, carryOut) = adder (Lava.high, (Lava.zeroList n, number'))
 
-test5 = do
+test_sim5 = do
   Lava.simulateSeq (counter 3) (replicate 10 ()) |> print
 
-test6 = do
+test_sim6 = do
   Lava.simulate P.mux4 ([Lava.low, Lava.high], (Lava.low, Lava.low, Lava.high, Lava.low)) |> print
   Lava.simulate P.mux4 ([Lava.low, Lava.high], (LA.int2bin 4 1, LA.int2bin 4 4, LA.int2bin 4 7, LA.int2bin 4 3)) |> print
 
-test7 = do
+test_sim7 = do
   Lava.simulate (P.alu 32) (Lava.int 1, Lava.int 5, P.Add) |> print
   Lava.simulate (P.alu 32) (Lava.int 2, Lava.int 1, P.Or) |> print
 
@@ -169,13 +152,41 @@ test7 = do
   --   (Lava.var "a", Lava.var "b", Lava.var "op")
   --   (Lava.var "cout")
 
+test_synth_half_adder = do
+  Lava.writeVhdl "halfAdd" halfAdd
+  -- Use custom library with more VHDL code generation options
+  VHD.writeVhdlNoClk "halfAddwithoutClk" halfAdd
+
+test_synth_full_adder = do
+  Lava.writeVhdlInputOutput "4BitAdder" adder
+    (Lava.var "cin", (Lava.varList 4 "a", Lava.varList 4 "b"))
+    (Lava.varList 4 "sum", Lava.var "cout")
+
+test_verify_half_adder = do
+  {- Verification (don't use Lava.satzoo!) -}
+  Lava.minisat prop_HalfAddOutputNeverBothTrue >>= print
+  
+test_verify_full_adder = do
+  Lava.minisat (prop_AdderCommutative_ForSize 32) >>= print
+  Lava.minisat (prop_AdderCommutative_ForSize 2) >>= print
+  Lava.minisat prop_FullAddCommutative >>= print
+  Lava.smv (prop_Equivalent LA.fullAdd fullAdd) >>= print
+
+test_verify_adder_seq = do
+  Lava.smv prop_SameAdderSeq >>= print
+  
+
 main :: IO ()
 main = do
-  -- test1
-  -- test2
-  test3
-  -- test4
-  -- test5 
-  -- test6
-  -- test5 
-  test7
+  test_sim1
+  test_sim2
+  test_sim3
+  test_sim4
+  test_sim5 
+  test_sim6
+  test_sim7
+  test_synth_half_adder
+  test_synth_full_adder
+  test_verify_half_adder
+  test_verify_full_adder
+  test_verify_adder_seq
