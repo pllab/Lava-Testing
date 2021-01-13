@@ -56,9 +56,15 @@ halfAdd (a, b) = (sum, carry)
     sum = Lava.xor2 (a,b)
     carry = Lava.and2 (a,b)
 
+testHalfAdder :: [(Bit, Bit)]
+testHalfAdder = map (Lava.simulate halfAdd) input
+    where input = [ (Lava.low,Lava.low), (Lava.low,Lava.high)
+                  , (Lava.high,Lava.low), (Lava.high,Lava.high)]
+
 test1 = do
   {- Simulation -}
   Lava.simulate halfAdd (Lava.high, Lava.high) |> print
+  testHalfAdder  |> print
   Lava.simulateSeq halfAdd Lava.domain |> mapM_ print
   {- Synthesis -}
   Lava.writeVhdl "halfAdd" halfAdd
@@ -104,7 +110,7 @@ test2 = do
   Lava.minisat prop_FullAddCommutative >>= print
   Lava.smv (prop_Equivalent LA.fullAdd fullAdd) >>= print
 
--- 3) N-bit Adder (via "row" connection patter)
+-- 3) N-bit Adder (via "row" connection pattern)
 
 adder' :: (Bit, [(Bit, Bit)]) -> ([Bit], Bit)
 adder' = LP.row fullAdd
@@ -150,7 +156,7 @@ test5 = do
 main :: IO ()
 main = do
   -- test1
-  test2
-  -- test3
+  -- test2
+  test3
   -- test4
   -- test5 
