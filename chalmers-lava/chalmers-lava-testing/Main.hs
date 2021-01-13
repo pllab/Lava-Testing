@@ -5,6 +5,7 @@ import qualified Lava.Arithmetic as LA
 import qualified Lava.Patterns as LP
 import qualified VhdlNew11 as VHD
 import qualified Lava.SequentialCircuits as LS
+import qualified Processor as P
 
 (|>) x f = f x
 
@@ -132,10 +133,27 @@ counter n () = number'
 test5 = do
   Lava.simulateSeq (counter 3) (replicate 10 ()) |> print
 
+test6 = do
+  Lava.simulate P.mux4 ([Lava.low, Lava.high], (Lava.low, Lava.low, Lava.high, Lava.low)) |> print
+  Lava.simulate P.mux4 ([Lava.low, Lava.high], (LA.int2bin 4 1, LA.int2bin 4 4, LA.int2bin 4 7, LA.int2bin 4 3)) |> print
+
+test7 = do
+  Lava.simulate (P.alu 32) (Lava.int 1, Lava.int 5, P.Add) |> print
+  Lava.simulate (P.alu 32) (Lava.int 2, Lava.int 1, P.Or) |> print
+
+  Lava.simulate (P.alu' 32) (Lava.int 1, Lava.int 5, P.Add) |> print
+  Lava.simulate (P.alu' 32) (Lava.int 2, Lava.int 1, P.Or) |> print
+
+  -- Lava.writeVhdlInputOutput "alu" P.aluBitWise
+  --   (Lava.var "a", Lava.var "b", Lava.var "op")
+  --   (Lava.var "cout")
+
 main :: IO ()
 main = do
   test1
   -- test2
   -- test3
   -- test4
-  test5 
+  -- test5 
+  -- test6
+  test7
