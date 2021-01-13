@@ -101,13 +101,6 @@ test_sim2 = do
 adder' :: (Bit, [(Bit, Bit)]) -> ([Bit], Bit)
 adder' = LP.row fullAdd
 
-test_sim3 = do
-  Lava.writeVhdlInputOutput "4BitAdder_row" adder'
-    (Lava.var "cin", map (\i -> (Lava.var $ "a_" ++ show i, Lava.var $ "b_" ++ show i)) [0..4])
-    (Lava.varList 4 "sum", Lava.var "cout")
-
-
-
 -- Sequential examples
 
 -- 4) Adder
@@ -124,7 +117,7 @@ prop_SameAdderSeq inp = ok
     out2 = adderSeq' inp
     ok   = out1 Lava.<==> out2
 
-test_sim4 = do
+test_sim3 = do
   {- Simulation -}
   let inputs = [(Lava.high, Lava.low), (Lava.high, Lava.high), (Lava.low, Lava.high)]
   Lava.simulateSeq adderSeq inputs |> print
@@ -134,14 +127,14 @@ counter n () = number'
     number'            = Lava.delay (Lava.zeroList n) number
     (number, carryOut) = adder (Lava.high, (Lava.zeroList n, number'))
 
-test_sim5 = do
+test_sim4 = do
   Lava.simulateSeq (counter 3) (replicate 10 ()) |> print
 
-test_sim6 = do
+test_sim5 = do
   Lava.simulate P.mux4 ([Lava.low, Lava.high], (Lava.low, Lava.low, Lava.high, Lava.low)) |> print
   Lava.simulate P.mux4 ([Lava.low, Lava.high], (LA.int2bin 4 1, LA.int2bin 4 4, LA.int2bin 4 7, LA.int2bin 4 3)) |> print
 
-test_sim7 = do
+test_sim_alu = do
   Lava.simulate (P.alu 32) (Lava.int 1, Lava.int 5, P.Add) |> print
   Lava.simulate (P.alu 32) (Lava.int 2, Lava.int 1, P.Or) |> print
 
@@ -160,6 +153,11 @@ test_synth_half_adder = do
 test_synth_full_adder = do
   Lava.writeVhdlInputOutput "4BitAdder" adder
     (Lava.var "cin", (Lava.varList 4 "a", Lava.varList 4 "b"))
+    (Lava.varList 4 "sum", Lava.var "cout")
+
+test_synth_full_adder_with_row = do
+  Lava.writeVhdlInputOutput "4BitAdder_row" adder'
+    (Lava.var "cin", map (\i -> (Lava.var $ "a_" ++ show i, Lava.var $ "b_" ++ show i)) [0..4])
     (Lava.varList 4 "sum", Lava.var "cout")
 
 test_verify_half_adder = do
@@ -181,12 +179,12 @@ main = do
   test_sim1
   test_sim2
   test_sim3
-  test_sim4
-  test_sim5 
-  test_sim6
-  test_sim7
+  test_sim4 
+  test_sim5
+  test_sim_alu
   test_synth_half_adder
   test_synth_full_adder
+  test_synth_full_adder_with_row
   test_verify_half_adder
   test_verify_full_adder
   test_verify_adder_seq
